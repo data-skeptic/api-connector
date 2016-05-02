@@ -3,6 +3,9 @@ Repository to help teams get started calling the API.
 
 If you would like to make suggestions for improvements or additions to this document, please send a pull request.
 
+### Available Connectors
+* Python [api_tools.py](/python/api_tools.py) Class for authenticating and pushing data.
+
 ## Before pushing any data to the Home Sales Data API, please make sure you...
 
 * are compliant with the terms and services of whatever data source you are pulling from
