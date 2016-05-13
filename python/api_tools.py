@@ -12,6 +12,7 @@ class push_data(object):
     ...         "size_units": 'I',
     ...         "raw_address": "1701 Wynkoop St, Denver, CO 80202"}
     >>> p = pusher.post_data(data=data)
+    >>> p.get_token()
     >>> p
     {'bathrooms': None,
     'bedrooms': None,
@@ -42,7 +43,7 @@ class push_data(object):
         data = {"username":self.username,
                 "password":self.password}
         r = requests.post(self.baseurl + '/token/auth/', data = data)
-        return r.json()['token']
+        self.token = r.json()['token']
 
     def post_data(self, data):
         'Pushes data'
