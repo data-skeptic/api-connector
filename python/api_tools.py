@@ -1,4 +1,8 @@
 import requests
+try:
+    from geopy.geocoders import GoogleV3
+except:
+    pass
 from datetime import datetime
 
 class push_data(object):
@@ -32,10 +36,11 @@ class push_data(object):
     'valid': False}
 
     """
-    def __init__(self, username, password, baseurl='https://home-sales-data-api.herokuapp.com'):
-        self.baseurl = baseurl
+    def __init__(self, username, password, baseurl='https://home-sales-data-api.herokuapp.com', geocode=True):
         self.username = username
         self.password = password
+        self.baseurl = baseurl
+        self.geocode = geocode
         self.token = None
 
     def get_token(self):
@@ -47,12 +52,22 @@ class push_data(object):
 
     def post_data(self, data):
         'Pushes data'
-        if self.token == None:
+        if self.token == None: #TODO is push fails becuase of expired token, get new token and try again.
             self.token = self.get_token()
-        #TODO is push fails becuase of expired token, get ne token and try again.
         headers = {"Authorization": "Bearer " + self.token}
-        p = requests.post(self.baseurl + '/api/property/', data = data, headers=headers)
+        if self.geocode == True:
+            encoder = GoogleV3()
+            location = encoder.geocode(data['raw_address']) #Todo, need to be sure we got a valid response
+            data['geocoded_address'] = location.address
+            data['city'] = location.address
+            data['state'] = location.address
+            data['zipcode'] = location.address
+            data['zip4'] = location.address
+            data['lat'] = location.latitude
+            data['lon'] = location.longitude
+            data['rawjson'] = location.raw
         try:
+            p = requests.post(self.baseurl + '/api/property/', data = data, headers=headers)
             assert p.status_code == 201
             return p.json()
         except:
