@@ -1,9 +1,10 @@
-# This is a very quick and dirty data extract from one web site and a clumsy push to the API
+# This is a very quick and dirty data extract from one web site and using api_tools/py for pushing data
 # This is not an example of great code, but a first step in demonstrating how we start doing
 # data pushes.
 
+from api_tools import push_data
 import requests
-import BeautifulSoup as bsoup
+import bs4 as bsoup
 import pandas as pd
 import time
 import datetime
@@ -57,34 +58,42 @@ while test == -1:
 
 df = pd.DataFrame(plistings)
 
-baseurl = 'https://home-sales-data-api.herokuapp.com/'
+# Create an instance of the data pusher.
+# Testing locally here, you need an account to push to:
+# http://home-sales-data-api-dev.herokuapp.com    or    http://http://home-sales-data-api.herokuapp.com
+pusher = push_data(username='JohnDoe', password='SuperSecure', baseurl='http://127.0.0.1:8000', geocode='address')
+pusher.get_token()
+print('API token: {}'.format(pusher.token))
+
 
 for r in range(df.shape[0]):
-	row = df.iloc[r]
-	price = row.price.replace('$', '').replace(',', '')
-	bedrooms = row.beds
-	bathrooms = row.baths
-	car_spaces = None
-	building_size = row.sqft
-	land_size = None
-	size_units = 'M' # metric
-	raw_address = row.address
-	#
-	request = {
-	    "listing_timestamp": str(datetime.now()),
-	    "listing_type": 'F', # for sale
-	    "price": price,
-	    "bedrooms": bedrooms,
-	    "bathrooms": bathrooms,
-	    "car_spaces": car_spaces,
-	    "building_size": building_size,
-	    "land_size": land_size,
-	    "size_units": size_units,
-	    "raw_address": raw_address,
-	    "features": []
-	}
-	#
-	r = requests.post(baseurl + '/api/property/', data = request)
-	time.sleep(.1)
-
-
+    row = df.iloc[r]
+    price = row.price.replace('$', '').replace(',', '')
+    bedrooms = row.beds
+    bathrooms = row.baths
+    car_spaces = None
+    building_size = row.sqft
+    land_size = None
+    size_units = 'M' # metric
+    raw_address = row.address
+    #
+    request = {
+        "listing_timestamp": str(datetime.now()),
+        "listing_type": 'F', # for sale
+        "price": price,
+        "bedrooms": bedrooms,
+        "bathrooms": bathrooms,
+        "car_spaces": car_spaces,
+        "building_size": building_size,
+        "land_size": land_size,
+        "size_units": size_units,
+        "raw_address": raw_address,
+        "features": []
+        }
+    print(request)
+    try:
+        p = pusher.post_data(data=request)
+        time.sleep(0.1)
+    except:
+        print('Failed: {}'.format(raw_address))
+        time.sleep(0.1)
