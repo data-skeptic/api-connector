@@ -7,9 +7,14 @@ from datetime import datetime
 
 class push_data(object):
     """
+
+    username: username to get token
+    password: password to get token
+    baseurl: server url Dev 'http://home-sales-data-api-dev.herokuapp.com' Production 'http://home-sales-data-api.herokuapp.com'
+    geocode: 'address': Default, only get the standurdized address, False: do nothing, True: Save geocode data
     Push data
     Example usage:
-    >>> pusher = push_data(username='JohnDoe', password='SuperSecure', baseurl='http://127.0.0.1:8000')
+    >>> pusher = push_data(username='JohnDoe', password='SuperSecure', baseurl='http://127.0.0.1:8000', geocode='address')
     >>> data = {"listing_timestamp": str(datetime.now()),
     ...         "listing_type": 'F', # for sale
     ...         "price": 123456,
@@ -36,7 +41,7 @@ class push_data(object):
     'valid': False}
 
     """
-    def __init__(self, username, password, baseurl='https://home-sales-data-api.herokuapp.com', geocode=True):
+    def __init__(self, username, password, baseurl, geocode='address'):
         self.username = username
         self.password = password
         self.baseurl = baseurl
@@ -55,17 +60,18 @@ class push_data(object):
         if self.token == None: #TODO is push fails becuase of expired token, get new token and try again.
             self.token = self.get_token()
         headers = {"Authorization": "Bearer " + self.token}
-        if self.geocode == True:
+        if self.geocode:
             encoder = GoogleV3()
             location = encoder.geocode(data['raw_address']) #Todo, need to be sure we got a valid response
             data['geocoded_address'] = location.address
-            data['city'] = location.address
-            data['state'] = location.address
-            data['zipcode'] = location.address
-            data['zip4'] = location.address
-            data['lat'] = location.latitude
-            data['lon'] = location.longitude
-            data['rawjson'] = location.raw
+            if self.geocode == True
+                data['city'] = location.address
+                data['state'] = location.address
+                data['zipcode'] = location.address
+                data['zip4'] = location.address
+                data['lat'] = location.latitude
+                data['lon'] = location.longitude
+                data['rawjson'] = location.raw
         try:
             p = requests.post(self.baseurl + '/api/property/', data = data, headers=headers)
             assert p.status_code == 201
