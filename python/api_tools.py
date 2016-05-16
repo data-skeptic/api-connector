@@ -14,6 +14,7 @@ class push_data(object):
     geocode: 'address': Default, only get the standurdized address, False: do nothing, True: Save geocode data
     Push data
     Example usage:
+    >>> pusher = push_data(username='JohnDoe', password='SuperSecure', baseurl='http://127.0.0.1:8000')
     >>> pusher = push_data(username='JohnDoe', password='SuperSecure', baseurl='http://127.0.0.1:8000', geocode='address')
     >>> data = {"listing_timestamp": str(datetime.now()),
     ...         "listing_type": 'F', # for sale
@@ -64,7 +65,7 @@ class push_data(object):
             encoder = GoogleV3()
             location = encoder.geocode(data['raw_address']) #Todo, need to be sure we got a valid response
             data['geocoded_address'] = location.address
-            if self.geocode == True
+            if self.geocode == True:
                 data['city'] = location.address
                 data['state'] = location.address
                 data['zipcode'] = location.address
