@@ -2,9 +2,9 @@
 # This is not an example of great code, but a first step in demonstrating how we start doing
 # data pushes.
 
-import api_tools
+from api_tools import push_data
 import requests
-import BeautifulSoup as bsoup
+import bs4 as bsoup
 import pandas as pd
 import time
 import datetime
@@ -67,30 +67,33 @@ print('API token: {}'.format(pusher.token))
 
 
 for r in range(df.shape[0]):
-	row = df.iloc[r]
-	price = row.price.replace('$', '').replace(',', '')
-	bedrooms = row.beds
-	bathrooms = row.baths
-	car_spaces = None
-	building_size = row.sqft
-	land_size = None
-	size_units = 'M' # metric
-	raw_address = row.address
-	#
-	request = {
-	    "listing_timestamp": str(datetime.now()),
-	    "listing_type": 'F', # for sale
-	    "price": price,
-	    "bedrooms": bedrooms,
-	    "bathrooms": bathrooms,
-	    "car_spaces": car_spaces,
-	    "building_size": building_size,
-	    "land_size": land_size,
-	    "size_units": size_units,
-	    "raw_address": raw_address,
-	    "features": []
-	}
-    p = pusher.post_data(data=data)
-    time.sleep(0.1)
-
-
+    row = df.iloc[r]
+    price = row.price.replace('$', '').replace(',', '')
+    bedrooms = row.beds
+    bathrooms = row.baths
+    car_spaces = None
+    building_size = row.sqft
+    land_size = None
+    size_units = 'M' # metric
+    raw_address = row.address
+    #
+    request = {
+        "listing_timestamp": str(datetime.now()),
+        "listing_type": 'F', # for sale
+        "price": price,
+        "bedrooms": bedrooms,
+        "bathrooms": bathrooms,
+        "car_spaces": car_spaces,
+        "building_size": building_size,
+        "land_size": land_size,
+        "size_units": size_units,
+        "raw_address": raw_address,
+        "features": []
+        }
+    print(request)
+    try:
+        p = pusher.post_data(data=request)
+        time.sleep(0.1)
+    except:
+        print('Failed: {}'.format(raw_address))
+        time.sleep(0.1)
