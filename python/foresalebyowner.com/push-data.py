@@ -1,7 +1,8 @@
-# This is a very quick and dirty data extract from one web site and a clumsy push to the API
+# This is a very quick and dirty data extract from one web site and using api_tools/py for pushing data
 # This is not an example of great code, but a first step in demonstrating how we start doing
 # data pushes.
 
+import api_tools
 import requests
 import BeautifulSoup as bsoup
 import pandas as pd
@@ -57,7 +58,13 @@ while test == -1:
 
 df = pd.DataFrame(plistings)
 
-baseurl = 'https://home-sales-data-api.herokuapp.com/'
+# Create an instance of the data pusher.
+# Testing locally here, you need an account to push to:
+# http://home-sales-data-api-dev.herokuapp.com    or    http://http://home-sales-data-api.herokuapp.com
+pusher = push_data(username='JohnDoe', password='SuperSecure', baseurl='http://127.0.0.1:8000', geocode='address')
+pusher.get_token()
+print('API token: {}'.format(pusher.token))
+
 
 for r in range(df.shape[0]):
 	row = df.iloc[r]
@@ -83,8 +90,7 @@ for r in range(df.shape[0]):
 	    "raw_address": raw_address,
 	    "features": []
 	}
-	#
-	r = requests.post(baseurl + '/api/property/', data = request)
-	time.sleep(.1)
+    p = pusher.post_data(data=data)
+    time.sleep(0.1)
 
 
