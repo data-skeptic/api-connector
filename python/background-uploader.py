@@ -16,7 +16,7 @@ from geopy.geocoders import GoogleV3
 argv = sys.argv
 if len(argv) == 1:
 	print "USAGE: python background-uploader.py [Required TSV source file] [Optional name of properties file] [Optional name of output summary file]"
-	sys.exit(-1)
+	sys.exit(1)
 
 if len(argv) >= 2:
 	src = argv[1]
@@ -33,14 +33,14 @@ else:
 
 if not(os.path.isfile(src)):
 	print "ERROR: Could not find source file file at " + src
-	sys.exit(-1)
+	sys.exit(1)
 
 if not(os.path.isfile(propertiesFile)):
 	print "ERROR: Could not find openhouse.config file"
 	print "  > Please create a properties file and place it in the local directory."
 	print "  > Instructions for doing this can be found at:"
 	print "  > " + base_site_url + "/faq.htm#config-file"
-	sys.exit(-1)
+	sys.exit(1)
 
 ############################
 # AQUIRING TOKEN
@@ -64,15 +64,15 @@ if r.status_code != 200:
 		errors = j['non_field_errors']
 		for error in errors:
 			print "ERROR: " + error
-			sys.exit(-1)
+			sys.exit(1)
 	else:
 		print "ERROR: " + unspecified
 		print j
-		sys.exit(-1)
+		sys.exit(1)
 
 if not('token' in j.keys()):
 	print 'ERROR: Got 200 response but it does not contain a token'
-	sys.exit(-1)
+	sys.exit(1)
 
 token = j['token']
 
@@ -105,7 +105,7 @@ for col in required:
 		check = d[col]
 	except KeyError:
 		print("ERROR: Did not find required header field " + col)
-		sys.exit(-1)
+		sys.exit(1)
 
 
 ############################
@@ -132,7 +132,6 @@ f = open(outputFile, 'a')
 f.write("------[" + str(datetime.datetime.now()) + "]--------------------")
 trows = df.shape[0]
 for i, row in df.iterrows():
-	print i
 	if i%1000 < 1:
 		print("Rows complete: {}%".format(int((1.0 * i/trows*100))))
 	d1 = row['sale_timestamp']
@@ -159,7 +158,7 @@ for i, row in df.iterrows():
 				geocode_status = 'none'
 			if geocode_status == 'failsecure':
 				print("ERROR: Problems with geocoding")
-				sys.exit(-1)
+				sys.exit(1)
 	retries = line_retries
 	failure = True
 	while retries >= 0 and overall_retries >= 0 and failure:
@@ -185,6 +184,18 @@ for i, row in df.iterrows():
 				msg += " (going to retry)\n"
 			msg += json.dumps(data).replace('\n', '')
 			f.write(msg)
+			terminal_error = False
+			try:
+				detail = json.loads(p.content)
+				if 'detail' in detail.keys() and detail['detail'] == 'You do not have permission to perform this action.':
+					msg = 'Your account does not have write access.  Please contact kyle@dataskeptic.com'
+					f.write(msg)
+					print(msg)
+					terminal_error = True
+			except:
+				pass
+			if terminal_error:
+				sys.exit(1)
 	if failure:
 		giveup_count += 1
 	if overall_retries < 0:
@@ -192,7 +203,16 @@ for i, row in df.iterrows():
 		f.write(msg)
 		print(msg)
 
-print("Successfully uploaded: " + str(success_count))
-print("Failures experienced: " + str(fail_count))
-print("Unrecovered failures: " + str(giveup_count))
+msg = "Successfully uploaded: " + str(success_count)
+f.write(msg + '\n')
+print(msg)
+
+msg = "Failures experienced: " + str(fail_count)
+f.write(msg + '\n')
+print(msg)
+
+msg = "Unrecovered failures: " + str(giveup_count)
+f.write(msg + '\n')
+print(msg)
+
 f.close()
